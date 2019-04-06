@@ -50,7 +50,8 @@ contract FlightSuretyApp {
     }
 
     function registerAirline() external requireIsOperational returns(bool success, uint256 votes) {
-        data.registerAirline();
+        // TODO
+        data.registerAirline(msg.sender);
         return (success, 0);
     }
 
@@ -243,5 +244,5 @@ contract FlightSuretyApp {
 }   
 
 contract FlightSuretyData {
-    function registerAirline() external;
+    function registerAirline(address newAirline) external;
 }

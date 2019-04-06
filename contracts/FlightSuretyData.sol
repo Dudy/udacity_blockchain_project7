@@ -34,7 +34,7 @@ contract FlightSuretyData {
     }
 
     modifier isCallerAuthorized() {
-        require(authorizedContracts[msg.sender] == 1, "caller not authorized");
+        require(authorizedContracts[msg.sender] == 1, "Caller not authorized");
         _;
     }
 
@@ -58,10 +58,11 @@ contract FlightSuretyData {
 
     // business logic
 
-
-
-
-    function registerAirline() external requireIsOperational {
+    function registerAirline(address newAirline) external requireIsOperational isCallerAuthorized {
+        require(airlines[msg.sender].isRegistered, "Caller is not a registered airline");
+        require(airlines[msg.sender].hasPaidFund, "Calling airline has not yet paid their funds");
+        require(!airlines[newAirline].isRegistered, "airline already registered");
+        airlines[newAirline] = Airline(true, false);
     }
 
 //     function buy() external payable requireIsOperational {
