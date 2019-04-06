@@ -58,3 +58,75 @@ Deploy the contents of the ./dapp folder
 The system is build of two contracts on the blockchain (a data contract and an application contract), a server-side backend
 application (on oracle) and a client-side frontend (dapp).
 
+
+
+# Requirements
+
+## Modules
+- one contract for data: FlightSuretyData => data persistence
+- one contract for app logic: FlightSuretyApp => app logic, oracles code
+- dapp client (Javascript in-browser client app) => UI to passengers
+- server app => simulating oracles
+
+## Airlines
+
+- register first airline when the contract is deployed
+    - airlines are stored in the data contract
+    - app contract can call data.registerAirline()
+- if there are less then five airlines registered, airline registration "data.registerAirline()" can only be called by existing airline
+    - eg. modifier "callerIsRegisteredAirline"
+- if there are at least four airlines, airline registration needs 50% multiparty-consensus
+    - store airline registration proposals by proposing airline address
+    - only if 50% of all already registered airlines have proposed to register a new airline, registration is really done
+- when an airline is finally registered, it needs to provide 10 ETH funding to the data contract
+    - the data contract holds all the data, so it also holds the fund
+
+## Flights
+
+- the dapp client should provide a form to submit flight data
+- it's too complicated to connect to a real world airline API to get real data, and it's not necessary
+- a flight consists of a unique flight number and a departure time (timestamp)
+
+## Passengers
+
+- may purchase flight insurance
+    - payable, max. 1 ETH
+- when a flight is delayed, the passenger receives 1.5x the amount they paid
+- on payout, don't call "wallet.transfer()"
+    - instead have a "user account" the gets the payout
+    - and let the user withdraw from that account
+        - mapping (address => uint) private userBalances;
+          function withdrawBalance() public {
+              uint amountToWithdraw = userBalances[msg.sender];
+              userBalances[msg.sender] = 0;
+              msg.sender.transfer(amountToWithdraw);
+          }
+
+## Oracles
+
+- simulated as a server app
+    - server.js
+    - create some oracles (e.g. 20) and store them in memory
+    - register them in the app
+    - retrieve each oracles three indexes from the app
+- client dapp triggers (button click) a request to update the flight status
+    - app.fetchFlightStatus()
+    - this emits an OracleRequest event
+    - that button click simulates real world events (e.g. flight landing)
+- server.js receives OracleRequest event
+    - flightSuretyApp.events.OracleRequest()
+    - loop through all oracles
+    - find the ones that contain the given index in their list of three indexes
+    - provide some answer to the app
+        - submitOracleResponse()
+        - randomly return one of the six STATUS_CODEs
+        - maybe use some sanity here, such that of the 20 oracles, 15 are always sending the "correct" code and five a different one
+
+## General
+
+- state changing functions must have operational control
+- multiparty consensus for state changing, just like when registering airlines
+    - maybe there is some code reusability possibility here
+- fail fast - use require at the beginning og the functions
+
+
