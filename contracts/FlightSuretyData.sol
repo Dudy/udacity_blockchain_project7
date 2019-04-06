@@ -6,12 +6,22 @@ contract FlightSuretyData {
 
     using SafeMath for uint256;
 
+    struct Airline {
+        bool isRegistered;
+        bool hasPaidFund;
+    }
+
     address private contractOwner;
     bool private operational = true;
+    mapping(address => uint256) private authorizedContracts;
+    mapping(address => Airline) private airlines;
 
-    constructor() public {
+    constructor(address firstAirline) public {
         contractOwner = msg.sender;
+        airlines[firstAirline] = Airline(true, false);
     }
+
+    // modifier
 
     modifier requireIsOperational() {
         require(operational, "Contract is currently not operational");
@@ -23,6 +33,13 @@ contract FlightSuretyData {
         _;
     }
 
+    modifier isCallerAuthorized() {
+        require(authorizedContracts[msg.sender] == 1, "caller not authorized");
+        _;
+    }
+
+    // utilities
+
     function isOperational() public view returns(bool) {
         return operational;
     }
@@ -30,6 +47,19 @@ contract FlightSuretyData {
     function setOperatingStatus(bool mode) external requireContractOwner {
         operational = mode;
     }
+
+    function authorizeCaller(address caller) external requireContractOwner {
+        authorizedContracts[caller] = 1;
+    }
+
+    function unauthorizeCaller(address caller) external requireContractOwner {
+        delete authorizedContracts[caller];
+    }
+
+    // business logic
+
+
+
 
     function registerAirline() external requireIsOperational {
     }

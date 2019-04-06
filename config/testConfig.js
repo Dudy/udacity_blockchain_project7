@@ -38,7 +38,7 @@ console.log("2");
     let firstAirline = accounts[1];
 
 console.log("3");
-    let flightSuretyData = await FlightSuretyData.new();
+    let flightSuretyData = await FlightSuretyData.new(firstAirline);
 console.log("4");
     let flightSuretyApp = await FlightSuretyApp.new("", flightSuretyData);
 console.log("5");
