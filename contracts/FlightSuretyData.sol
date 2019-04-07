@@ -33,8 +33,8 @@ contract FlightSuretyData {
         _;
     }
 
-    modifier isCallerAuthorized() {
-        require(authorizedContracts[msg.sender] == 1, "Caller not authorized");
+    modifier requireAuthorizedCaller() {
+        require(isCallerAuthorized(msg.sender), "Caller not authorized");
         _;
     }
 
@@ -48,6 +48,10 @@ contract FlightSuretyData {
         operational = mode;
     }
 
+    function isCallerAuthorized(address caller) public view returns(bool) {
+        return authorizedContracts[caller] == 1;
+    }
+
     function authorizeCaller(address caller) external requireContractOwner {
         authorizedContracts[caller] = 1;
     }
@@ -58,7 +62,7 @@ contract FlightSuretyData {
 
     // business logic
 
-    function registerAirline(address newAirline) external requireIsOperational isCallerAuthorized {
+    function registerAirline(address newAirline) external requireIsOperational requireAuthorizedCaller {
         require(airlines[msg.sender].isRegistered, "Caller is not a registered airline");
         require(airlines[msg.sender].hasPaidFund, "Calling airline has not yet paid their funds");
         require(!airlines[newAirline].isRegistered, "airline already registered");
@@ -73,7 +77,7 @@ contract FlightSuretyData {
 //         // there will be no payout here! see next method
 //     }
     
-//     function pay() external requireIsOperational {
+//     function pay() external requireIsOperatioal {
 //         // this method will transfer funds to the user, but noch in a push manner but in a pull manner
 //         // users need to call this to get their funds payed out
 //     }

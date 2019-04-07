@@ -35,8 +35,9 @@ var Config = async function(accounts) {
 
     let owner = accounts[0];
     let firstAirline = accounts[1];
-    let flightSuretyData = await FlightSuretyData.new(firstAirline);
-    let flightSuretyApp = await FlightSuretyApp.new(flightSuretyData.address);
+    let flightSuretyData = await FlightSuretyData.new(firstAirline, { from: owner });
+    let flightSuretyApp = await FlightSuretyApp.new(flightSuretyData.address, { from: owner });
+    await flightSuretyData.authorizeCaller(flightSuretyApp.address, { from: owner });
     
     return {
         owner: owner,
