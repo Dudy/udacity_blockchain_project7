@@ -99,11 +99,67 @@ contract('Flight Surety Tests', async (accounts) => {
         assert.equal(status, false, "Unauthorization not successful");
     });
 
+    it('contract non-owner cannot unauthorize a caller', async function() {
+        await config.flightSuretyData.authorizeCaller(config.testAddresses[2]);
+        let status = await config.flightSuretyData.isCallerAuthorized.call(config.testAddresses[2]);
+        assert.equal(status, true, "Account is not authorized");
+
+        let errorFree = true;
+        try {
+            await config.flightSuretyData.unauthorizeCaller(config.testAddresses[2], { from: testAddresses[3] });
+        } catch(e) {
+            errorFree = false;
+        }
+        assert.equal(errorFree, false, "Unauthorization attemp did not threw an expected error");
+
+        status = await config.flightSuretyData.isCallerAuthorized.call(config.testAddresses[2]);
+        assert.equal(status, true, "Unauthorization unexpectedly successful");
+    });
+
+    // airline registration
+
+    it('when the data contract is not operational then it should not be possible to register a new airline', async function() {
+        await config.flightSuretyData.setOperatingStatus(false);
+    
+        let reverted = false;
+        try {
+            await config.flightSuretyData.registerAirline(accounts[2], {from: config.firstAirline});
+        } catch(e) {
+console.log(e.message);
+            reverted = true;
+        }
+        assert.equal(reverted, true, "Access not blocked for requireIsOperational");
+
+        await config.flightSuretyData.setOperatingStatus(true);
+    });
+
+    it('when the caller is not authorized then it should not be possible to register a new airline', async function() {
+        let reverted = false;
+        try {
+            await config.flightSuretyData.registerAirline(accounts[2], {from: config.firstAirline});
+        } catch(e) {
+console.log(e.message);
+            reverted = true;
+        }
+        assert.equal(reverted, true, "Caller is not authorized, but call succeeded");
+    });
+
+    it('when the caller is not a registered airline then it should not be possible to register a new airline', async function() {
+        await config.flightSuretyData.setOperatingStatus(true);
+        await config.flightSuretyData.authorizeCaller(accounts[4]);
+
+        let registrationSuccessful = true;
+        try {
+            await config.flightSuretyData.registerAirline(accounts[5], {from: accounts[4]});
+        } catch(e) {
+console.log(e.message);
+            registrationSuccessful = false;
+        }
+        assert.equal(registrationSuccessful, false, "Caller is not authorized, but call succeeded");
 
 
-
-
-
+        await config.flightSuretyData.unauthorizeCaller(accounts[4]);
+    });
 
 
 
