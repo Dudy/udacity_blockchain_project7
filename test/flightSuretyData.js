@@ -125,8 +125,8 @@ contract('Flight Surety Tests', async (accounts) => {
         try {
             await config.flightSuretyData.registerAirline(accounts[2], {from: config.firstAirline});
         } catch(e) {
-console.log(e.message);
             reverted = true;
+            assert.equal(e.message, "VM Exception while processing transaction: revert Contract is currently not operational", "wrong exception occurred");
         }
         assert.equal(reverted, true, "Access not blocked for requireIsOperational");
 
@@ -138,7 +138,7 @@ console.log(e.message);
         try {
             await config.flightSuretyData.registerAirline(accounts[2], {from: config.firstAirline});
         } catch(e) {
-console.log(e.message);
+            assert.equal(e.message, "VM Exception while processing transaction: revert Caller not authorized", "wrong exception occurred");
             reverted = true;
         }
         assert.equal(reverted, true, "Caller is not authorized, but call succeeded");
@@ -152,18 +152,74 @@ console.log(e.message);
         try {
             await config.flightSuretyData.registerAirline(accounts[5], {from: accounts[4]});
         } catch(e) {
-console.log(e.message);
+            assert.equal(e.message, "VM Exception while processing transaction: revert Caller is not a registered airline", "wrong exception occurred");
             registrationSuccessful = false;
         }
-        assert.equal(registrationSuccessful, false, "Caller is not authorized, but call succeeded");
-
-
-        await config.flightSuretyData.unauthorizeCaller(accounts[4]);
+        assert.equal(registrationSuccessful, false, "Caller is not registered, but call succeeded");
     });
 
+    it('when the calling airline has not yet paid it\'s funds then it should not be possible to register a new airline', async function() {
+        await config.flightSuretyData.setOperatingStatus(true);
+        await config.flightSuretyData.authorizeCaller(config.firstAirline);
+        await config.flightSuretyData.authorizeCaller(accounts[5]);
 
+        let registrationSuccessful = true;
+        try {
+            await config.flightSuretyData.registerAirline(accounts[5], {from: config.firstAirline});
+        } catch(e) {
+            assert.equal(e.message, "VM Exception while processing transaction: revert Calling airline has not yet paid their funds", "wrong exception occurred");
+            registrationSuccessful = false;
+        }
+        assert.equal(registrationSuccessful, false, "Caller has not paid funds, but call succeeded");
 
+        await config.flightSuretyData.unauthorizeCaller(config.firstAirline);
+    });
 
+    // TODO
+    // it('when the calling airline has not yet paid it\'s funds then it should not be possible to register a new airline', async function() {
+    //     await config.flightSuretyData.setOperatingStatus(true);
+    //     await config.flightSuretyData.authorizeCaller(config.firstAirline);
+    //     await config.flightSuretyData.authorizeCaller(accounts[5]);
+
+    //     let registrationSuccessful = true;
+    //     try {
+    //         await config.flightSuretyData.registerAirline(accounts[5], {from: config.firstAirline});
+    //     } catch(e) {
+    //         assert.equal(e.message, "VM Exception while processing transaction: revert Airline already registered", "wrong exception occurred");
+    //         registrationSuccessful = false;
+    //     }
+    //     assert.equal(registrationSuccessful, false, "Airline already registered, but call succeeded");
+
+    //     await config.flightSuretyData.unauthorizeCaller(config.firstAirline);
+    // });
+
+    it('overfund airline', async function() {
+console.log("0a");
+        await config.flightSuretyData.setOperatingStatus(true);
+console.log("0b");
+        await config.flightSuretyData.authorizeCaller(config.firstAirline);
+
+console.log("0c");
+        const firstAirlineBalanceBefore = await web3.eth.getBalance(config.firstAirline);
+console.log("0d");
+        const dataBalanceBefore = await web3.eth.getBalance(config.flightSuretyData);
+
+console.log("1");
+        await config.flightSuretyData.fund({ from: config.firstAirline, value: 12 });
+console.log("2");
+
+        const firstAirlineBalanceAfter = await web3.eth.getBalance(config.firstAirline);
+        const dataBalanceAfter = await web3.eth.getBalance(config.flightSuretyData);
+        const blockchainCost = 7137600000000000;
+
+console.log("3");
+
+        assert.equal(dataBalanceBefore.add(web3.eth.fromWei("10 ether")).eq(dataBalanceAfter), true, 'data contract has not received the correct amount of money');
+        assert.equal(firstAirlineBalanceAfter.add(web3.eth.fromWei("10 ether")).add(blockchainCost).eq(firstAirlineBalanceBefore), true, 'firstAirline has not paid the correct amount of money');
+        
+        await config.flightSuretyData.unauthorizeCaller(config.firstAirline);
+    });
+    
 
 
 

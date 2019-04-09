@@ -38,6 +38,7 @@ var Config = async function(accounts) {
     let flightSuretyData = await FlightSuretyData.new(firstAirline, { from: owner });
     let flightSuretyApp = await FlightSuretyApp.new(flightSuretyData.address, { from: owner });
     await flightSuretyData.authorizeCaller(flightSuretyApp.address, { from: owner });
+    const JOIN_FEE =  web3.toWei(10,"ether");
     
     return {
         owner: owner,

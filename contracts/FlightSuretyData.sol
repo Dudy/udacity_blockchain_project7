@@ -6,6 +6,8 @@ contract FlightSuretyData {
 
     using SafeMath for uint256;
 
+    uint constant JOIN_FEE = 10 ether;
+
     struct Airline {
         bool isRegistered;
         bool hasPaidFund;
@@ -65,7 +67,7 @@ contract FlightSuretyData {
     function registerAirline(address newAirline) external requireIsOperational requireAuthorizedCaller {
         require(airlines[msg.sender].isRegistered, "Caller is not a registered airline");
         require(airlines[msg.sender].hasPaidFund, "Calling airline has not yet paid their funds");
-        require(!airlines[newAirline].isRegistered, "airline already registered");
+        require(!airlines[newAirline].isRegistered, "Airline already registered");
         airlines[newAirline] = Airline(true, false);
     }
 
@@ -82,13 +84,14 @@ contract FlightSuretyData {
 //         // users need to call this to get their funds payed out
 //     }
 
-//    /**
-//     * @dev Initial funding for the insurance. Unless there are too many delayed flights
-//     *      resulting in insurance payouts, the contract should be self-sustaining
-//     */   
-//     function fund() public payable requireIsOperational {
-//         // airlines use this to deposit the initial 10 ETH fund to join the group
-//     }
+    function fund() public payable requireIsOperational requireAuthorizedCaller {
+        require(msg.value >= JOIN_FEE, "value is too low, price not met");
+        require(airlines[msg.sender].isRegistered, "Caller is not a registered airline");
+        require(!airlines[msg.sender].hasPaidFund, "Calling airline has already paid their funds");
+
+        uint amountToReturn = msg.value - JOIN_FEE;
+        msg.sender.transfer(amountToReturn);
+    }
 
 //     function getFlightKey(address airline, string memory flight, uint256 timestamp) internal returns(bytes32) {
 //         return keccak256(abi.encodePacked(airline, flight, timestamp));
