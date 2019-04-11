@@ -7,20 +7,29 @@ contract FlightSuretyData {
     using SafeMath for uint256;
 
     uint constant JOIN_FEE = 10 ether;
+    uint constant CONSENSUS_THRESHOLD = 4;
 
     struct Airline {
         bool isRegistered;
         bool hasPaidFund;
+        mapping(address => uint) registeringAirlines;
+        uint numberOfRegisteringAirlines;
     }
 
     address private contractOwner;
     bool private operational = true;
-    mapping(address => uint256) private authorizedContracts;
+    mapping(address => uint) private authorizedContracts;
     mapping(address => Airline) private airlines;
+    uint numberOfRegisteredAirlines = 0;
 
     constructor(address firstAirline) public {
         contractOwner = msg.sender;
-        airlines[firstAirline] = Airline(true, false);
+        Airline memory airline;
+        airline.isRegistered = true;
+        airline.hasPaidFund = false;
+        airline.numberOfRegisteringAirlines = 0;
+        airlines[firstAirline] = airline;
+        numberOfRegisteredAirlines = 1;
     }
 
     // modifier
@@ -68,7 +77,23 @@ contract FlightSuretyData {
         require(airlines[msg.sender].isRegistered, "Caller is not a registered airline");
         require(airlines[msg.sender].hasPaidFund, "Calling airline has not yet paid their funds");
         require(!airlines[newAirline].isRegistered, "Airline already registered");
-        airlines[newAirline] = Airline(true, false);
+
+        if (numberOfRegisteredAirlines > CONSENSUS_THRESHOLD) {
+            require(airlines[newAirline].registeringAirlines[msg.sender] == 0, "cannot vote for registration of the same airline twice");
+
+            airlines[newAirline].registeringAirlines[msg.sender] = 1;
+            airlines[newAirline].numberOfRegisteringAirlines.add(1);
+
+            if (airlines[newAirline].numberOfRegisteringAirlines * 2 >= numberOfRegisteredAirlines) {
+                airlines[newAirline].isRegistered = true;
+                numberOfRegisteredAirlines.add(1);
+            }
+        } else {
+            airlines[newAirline].isRegistered = true;
+            airlines[newAirline].registeringAirlines[msg.sender] = 1;
+            airlines[newAirline].numberOfRegisteringAirlines = 1;
+            numberOfRegisteredAirlines.add(1);
+        }
     }
 
 //     function buy() external payable requireIsOperational {
