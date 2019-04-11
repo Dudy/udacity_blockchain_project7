@@ -71,6 +71,18 @@ contract FlightSuretyData {
         delete authorizedContracts[caller];
     }
 
+    function isAirlineRegistered(address airline) external view returns(bool) {
+        return airlines[airline].isRegistered;
+    }
+
+    function hasAirlinePaidFund(address airline) external view returns(bool) {
+        return airlines[airline].hasPaidFund;
+    }
+
+    function getNumberOfRegisteredAirlines() external view returns(uint) {
+        return numberOfRegisteredAirlines;
+    }
+
     // business logic
 
     function registerAirline(address newAirline) external requireIsOperational requireAuthorizedCaller {
@@ -78,22 +90,28 @@ contract FlightSuretyData {
         require(airlines[msg.sender].hasPaidFund, "Calling airline has not yet paid their funds");
         require(!airlines[newAirline].isRegistered, "Airline already registered");
 
-        if (numberOfRegisteredAirlines > CONSENSUS_THRESHOLD) {
+        if (numberOfRegisteredAirlines >= CONSENSUS_THRESHOLD) {
             require(airlines[newAirline].registeringAirlines[msg.sender] == 0, "cannot vote for registration of the same airline twice");
 
             airlines[newAirline].registeringAirlines[msg.sender] = 1;
-            airlines[newAirline].numberOfRegisteringAirlines.add(1);
+            airlines[newAirline].numberOfRegisteringAirlines = airlines[newAirline].numberOfRegisteringAirlines.add(1);
 
             if (airlines[newAirline].numberOfRegisteringAirlines * 2 >= numberOfRegisteredAirlines) {
                 airlines[newAirline].isRegistered = true;
-                numberOfRegisteredAirlines.add(1);
+                numberOfRegisteredAirlines = numberOfRegisteredAirlines.add(1);
             }
         } else {
             airlines[newAirline].isRegistered = true;
             airlines[newAirline].registeringAirlines[msg.sender] = 1;
             airlines[newAirline].numberOfRegisteringAirlines = 1;
-            numberOfRegisteredAirlines.add(1);
+            numberOfRegisteredAirlines = numberOfRegisteredAirlines.add(1);
         }
+    }
+
+    function unregisterAirline(address airline) external requireIsOperational requireAuthorizedCaller {
+        require(airlines[airline].isRegistered, "airline is not registered");
+        delete airlines[airline];
+        numberOfRegisteredAirlines = numberOfRegisteredAirlines.sub(1);
     }
 
 //     function buy() external payable requireIsOperational {
@@ -114,6 +132,8 @@ contract FlightSuretyData {
         require(airlines[msg.sender].isRegistered, "Caller is not a registered airline");
         require(!airlines[msg.sender].hasPaidFund, "Calling airline has already paid their funds");
 
+        airlines[msg.sender].hasPaidFund = true;
+
         uint amountToReturn = msg.value - JOIN_FEE;
         msg.sender.transfer(amountToReturn);
     }
@@ -122,11 +142,8 @@ contract FlightSuretyData {
 //         return keccak256(abi.encodePacked(airline, flight, timestamp));
 //     }
 
-//     /**
-//     * @dev Fallback function for funding smart contract.
-//     */
-//     function() external payable {
-//         fund();
-//     }
+     function() external payable {
+         fund();
+     }
 }
 
