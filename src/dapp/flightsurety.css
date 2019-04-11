@@ -4,12 +4,15 @@ body {
     background-size: cover;
 }
 
+main.container {
+    margin-top: 200px;
+    padding: 20px;
+}
+
 .container {
-    margin-top: 400px;
     background-color: #000;
     opacity: 0.9;
     color: #fff;
-    padding: 40px;
 }
 
 .top-20 {
@@ -26,7 +29,7 @@ section {
 
 .field {
     font-weight: bold;
-    text-align: right;
+    line-height: 38px;
 }
 
 .field-value {
@@ -37,6 +40,44 @@ label.form {
     font-size: 14px;
     margin-right: 20px;
 }
-input {
-    margin-right: 30px;
+
+
+
+
+
+
+.row.even {
+    background-color: #333333;
 }
+
+.row.odd {
+    background-color: #111111;
+}
+
+input {
+    width: 100%;
+    margin: 5px;
+    height: 35px;
+}
+
+button {
+    width: 100%;
+}
+
+#addFlight {
+    width: 100%;
+}
+
+#headRow {
+    
+}
+
+.no-right-padding {
+    padding-right: 0 !important;
+}
+
+.no-left-padding {
+    padding-left: 0 !important;
+}
+
+
