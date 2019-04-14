@@ -22,6 +22,14 @@ contract FlightSuretyData {
     mapping(address => Airline) private airlines;
     uint numberOfRegisteredAirlines = 0;
 
+    struct Flight {
+        bool isRegistered;
+        uint8 statusCode;
+        uint256 updatedTimestamp;        
+        address airline;
+    }
+    mapping(bytes32 => Flight) private flights;
+
     constructor(address firstAirline) public {
         contractOwner = msg.sender;
         Airline memory airline;

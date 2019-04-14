@@ -15,18 +15,18 @@ export default class Contract {
     }
 
     initialize(callback) {
-        this.web3.eth.getAccounts((error, accts) => {
+        this.web3.eth.getAccounts((error, accounts) => {
            
-            this.owner = accts[0];
+            this.owner = accounts[0];
 
             let counter = 1;
             
             while(this.airlines.length < 5) {
-                this.airlines.push(accts[counter++]);
+                this.airlines.push(accounts[counter++]);
             }
 
             while(this.passengers.length < 5) {
-                this.passengers.push(accts[counter++]);
+                this.passengers.push(accounts[counter++]);
             }
 
             callback();
@@ -51,6 +51,20 @@ export default class Contract {
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
             .send({ from: self.owner}, (error, result) => {
                 callback(error, payload);
+            });
+    }
+
+    buyInsurance(flightnumber, insurancefee, callback) {
+        let self = this;
+        let payload = {
+            flightnumber: flightnumber,
+            insurancefee: insurancefee
+        } 
+        self.flightSuretyApp.methods
+            .buyInsurance(payload.flightnumber, payload.insurancefee)
+            .send({ from: self.owner}, (error, result) => {
+                //callback(error, payload);
+                callback(result);
             });
     }
 }
