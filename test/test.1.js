@@ -1,11 +1,10 @@
 var FlightSuretyApp = artifacts.require("FlightSuretyApp");
 var FlightSuretyData = artifacts.require("FlightSuretyData");
-var BigNumber = require('bignumber.js');
 
-contract('Flight Surety App Tests', async (accounts) => {
+contract('TEST TEST', async (accounts) => {
     let owner = accounts[0];
     let firstAirline = accounts[1];
-    const JOIN_FEE =  web3.toWei(10,"ether");
+
     let testAddresses = [
         "0x69e1cb5cfca8a311586e3406ed0301c06fb839a2",
         "0xf014343bdffbed8660a9d8721dec985126f189f3",
@@ -20,8 +19,36 @@ contract('Flight Surety App Tests', async (accounts) => {
 
     beforeEach(async function() { 
         this.flightSuretyData = await FlightSuretyData.new(firstAirline, { from: owner });
+
+        const allFlightSuretyDataEvents = this.flightSuretyData.allEvents({
+            fromBlock: 0,
+            toBlock: 'latest'
+        });
+        
+        allFlightSuretyDataEvents.watch((err, res) => {
+            // console.log(err, res);
+            // console.log();
+        });
+
+// console.log(this.flightSuretyData);
+console.log('------------------------------------------------------------------------------------------');
+
         this.flightSuretyApp = await FlightSuretyApp.new(this.flightSuretyData.address, { from: owner });
+
+// // console.log(this.flightSuretyApp);
+
         await this.flightSuretyData.authorizeCaller(this.flightSuretyApp.address, { from: owner });
+
+
+        const allFlightSuretyAppEvents = this.flightSuretyApp.allEvents({
+            fromBlock: 0,
+            toBlock: 'latest'
+        });
+
+        allFlightSuretyAppEvents.watch((err, res) => {
+            // console.log(err, res);
+            // console.log();
+        });
     });
 
     it('buy an insurances for too much money', async function() {
@@ -67,12 +94,6 @@ contract('Flight Surety App Tests', async (accounts) => {
         assert.equal(numberOfInsurances, 1, 'insurance could not be bought');
     });
 
-    it('call fetchFlightStatus', async function() {
-        let flightnumber = 'testflight_0';
-        let result = await this.flightSuretyApp.fetchFlightStatus(firstAirline, flightnumber, Math.floor(Date.now() / 1000));
-        assert.equal(result.logs[0].event, 'OracleRequest', 'no OracleRequest event was sent');
-        assert.equal(result.logs[0].args.airline, firstAirline, 'wrong airline in OracleRequest event');
-        assert.equal(result.logs[0].args.flight, flightnumber, 'wrong flightnumber in OracleRequest event');
-    });
-
 });
+
+

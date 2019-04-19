@@ -30,8 +30,16 @@ contract FlightSuretyData {
     }
     mapping(bytes32 => Flight) private flights;
 
+    struct Insurance {
+        bool isRegistered;
+        bool isPaidOut;
+        uint fee;
+    }
+    mapping(bytes32 => Insurance) insurances;
+
     constructor(address firstAirline) public {
         contractOwner = msg.sender;
+        emit Log("Data: constructor: contractOwner set");
         Airline memory airline;
         airline.isRegistered = true;
         airline.hasPaidFund = false;
@@ -40,8 +48,9 @@ contract FlightSuretyData {
         numberOfRegisteredAirlines = 1;
     }
 
-    // modifier
+    event Log(string text);
 
+// region modifier
     modifier requireIsOperational() {
         require(operational, "Contract is currently not operational");
         _;
@@ -56,9 +65,9 @@ contract FlightSuretyData {
         require(isCallerAuthorized(msg.sender), "Caller not authorized");
         _;
     }
+// endregion
 
-    // utilities
-
+// region utilities
     function isOperational() public view returns(bool) {
         return operational;
     }
@@ -91,8 +100,12 @@ contract FlightSuretyData {
         return numberOfRegisteredAirlines;
     }
 
-    // business logic
+    function getInsuranceKey(address passenger, string flightnumber) pure internal returns(bytes32) {
+        return keccak256(abi.encodePacked(passenger, flightnumber));
+    }
+// endregion
 
+// region business logic
     function registerAirline(address newAirline) external requireIsOperational requireAuthorizedCaller {
         require(airlines[msg.sender].isRegistered, "Caller is not a registered airline");
         require(airlines[msg.sender].hasPaidFund, "Calling airline has not yet paid their funds");
@@ -122,23 +135,48 @@ contract FlightSuretyData {
         numberOfRegisteredAirlines = numberOfRegisteredAirlines.sub(1);
     }
 
-//     function buy() external payable requireIsOperational {
-//     }
 
-//     function creditInsurees() external requireIsOperational {
-//         // there will be an internal account on which user payments will be tracked
-//         // there will be no payout here! see next method
-//     }
+
+    event InsuranceBoughtEvent(address passenger, string flightnumber, uint fee);
+    function buyInsurance(address passenger, string flightnumber, uint insurancefee) external requireIsOperational requireAuthorizedCaller {
+        require(insurancefee <= 1 ether, "insurances can only be up to 1 ether");
+
+        bytes32 insuranceKey = getInsuranceKey(passenger, flightnumber);
+
+        require(!insurances[insuranceKey].isRegistered, "you can only buy one insurance per flight per passenger");
+        require(!insurances[insuranceKey].isPaidOut, "this insurance has already been paid out");
+
+        insurances[insuranceKey] = Insurance(true, false, insurancefee);
+        emit InsuranceBoughtEvent(passenger, flightnumber, insurancefee);
+    }
+
+    function test(string text) external {
+        emit Log(text);
+    }
+
+
+
+
+
+    function creditInsurees(address passenger, string flightnumber) external requireIsOperational requireAuthorizedCaller {
+        // there will be an internal account on which user payments will be tracked
+        // there will be no payout here! see next method
+
+        bytes32 insuranceKey = getInsuranceKey(passenger, flightnumber);
+        // TODO: transfer insurances[insuranceKey].fee to passengers account for later withdrawel;
+    }
     
 //     function pay() external requireIsOperatioal {
 //         // this method will transfer funds to the user, but noch in a push manner but in a pull manner
 //         // users need to call this to get their funds payed out
 //     }
 
-    function fund() public payable requireIsOperational requireAuthorizedCaller {
+    function airlineFunding() public payable requireIsOperational requireAuthorizedCaller {
         require(msg.value >= JOIN_FEE, "value is too low, price not met");
         require(airlines[msg.sender].isRegistered, "Caller is not a registered airline");
         require(!airlines[msg.sender].hasPaidFund, "Calling airline has already paid their funds");
+
+        //emit Log("unknown method, fallthrough get's to work");
 
         airlines[msg.sender].hasPaidFund = true;
 
@@ -150,8 +188,14 @@ contract FlightSuretyData {
 //         return keccak256(abi.encodePacked(airline, flight, timestamp));
 //     }
 
-     function() external payable {
-         fund();
-     }
+    function fund() public payable {
+    }
+
+    function() external payable {
+        //emit Log("Data: unknown");
+        //emit Log("unknown method, fallthrough get's to work");
+        fund();
+    }
+// endregion
 }
 

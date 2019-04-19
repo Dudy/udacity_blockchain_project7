@@ -14,13 +14,6 @@ contract FlightSuretyApp {
 
     address private contractOwner; // Account used to deploy contract
 
-    struct Insurance {
-        address owner;
-        string flightnumber;
-        uint fee;
-    }
-    mapping(bytes32 => Insurance) insurances;
-
     struct Flight {
         bool isRegistered;
         uint8 statusCode;
@@ -32,10 +25,6 @@ contract FlightSuretyApp {
     bool private operational = true;
 
     FlightSuretyData private data;
-
-// region events
-    event InsuranceBoughtEvent(address passenger, string flightnumber, uint256 fee);
-// endregion
  
 // region modifiers
     modifier requireIsOperational() {
@@ -51,8 +40,35 @@ contract FlightSuretyApp {
 
     constructor(address dataContract) public {
         contractOwner = msg.sender;
+        emit Log("App: constructor: contractOwner set");
         data = FlightSuretyData(dataContract);
+        emit Log("App: constructor: data contract registered");
+        //emit Log(toString(address(data)));
+        emit Log(toAsciiString(address(data)));
     }
+
+
+event Log(string text);
+function toAsciiString(address x) internal returns (string) {
+    bytes memory s = new bytes(40);
+    for (uint i = 0; i < 20; i++) {
+        byte b = byte(uint8(uint(x) / (2**(8*(19 - i)))));
+        byte hi = byte(uint8(b) / 16);
+        byte lo = byte(uint8(b) - 16 * uint8(hi));
+        s[2*i] = char(hi);
+        s[2*i+1] = char(lo);            
+    }
+    return string(s);
+}
+
+function char(byte b) returns (byte c) {
+    if (b < 10) return byte(uint8(b) + 0x30);
+    else return byte(uint8(b) + 0x57);
+}
+
+
+
+
 
     function isOperational() public view returns(bool) {
         return operational;
@@ -66,23 +82,39 @@ contract FlightSuretyApp {
         data.registerAirline(msg.sender);
     }
 
-    function buyInsurance(string flightnumber, uint insurancefee) external payable requireIsOperational {
-        require(msg.value <= 1 ether, "insurances can only be up to 1 ether");
+    function buyInsurance(string flightnumber) public payable requireIsOperational {
+        emit Log("buyInsurance: method starts");
+        //require(msg.value <= 1 ether, "insurances can only be up to 1 ether");
+        emit Log("buyInsurance: requirements met");
+        
+        address(data).transfer(msg.value);
+        
+        emit Log("buyInsurance: fund transferred");
+        data.buyInsurance(msg.sender, flightnumber, msg.value);
+        emit Log("buyInsurance: data contract called");
 
-        insurances[getInsuranceKey(msg.sender, flightnumber, insurancefee)] = Insurance(msg.sender, flightnumber, insurancefee);
+        insurances = insurances + 1;
+    }
 
-        emit InsuranceBoughtEvent(msg.sender, flightnumber, insurancefee);
+    uint insurances = 0;
+    function getNumberOfInsurances() public view returns(uint) {
+        return insurances;
     }
 
    /**
     * @dev Called after oracle has updated flight status
     *
     */  
-    function processFlightStatus(address airline, string memory flight, uint256 timestamp, uint8 statusCode) internal pure {
+    function processFlightStatus(address airline, string memory flight, uint256 timestamp, uint8 statusCode) internal {
         // gets called when an oracle sends some information (after the next method has triggered such a message from the oracle into the contract)
         // if the oracle comes back with status 20, add some money to the users account so that he can later on withdraw it
 
         // TODO
+
+        if (statusCode == STATUS_CODE_LATE_AIRLINE) {
+            // refund all passengers that have an insurance for that flight
+            data.creditInsurees(flight);
+        }
     }
 
     // Generate a request for oracles to fetch flight information
@@ -229,12 +261,11 @@ contract FlightSuretyApp {
 
 // endregion
 
-    function getInsuranceKey(address owner, string flightnumber, uint fee) pure internal returns(bytes32) {
-        return keccak256(abi.encodePacked(owner, flightnumber, fee));
-    }
-
 }   
 
 contract FlightSuretyData {
     function registerAirline(address newAirline) external;
+    function buyInsurance(address passenger, string flightnumber, uint insurancefee) external;
+    function creditInsurees(string flightnumber) external payable;
+    function test(string text) external;
 }

@@ -25,15 +25,19 @@ function buyInsuranceHandler() {
     let insurancefee = parseFloat(insuranceFeeTextfield.value);
     let button = DOM.elid('button_' + id);
 
-    if (!insurancefee || insurancefee < 0 || insurancefee > 1) {
-        alert('insurance fee must be between 0.0 and 1.0 ETH');
-    } else {
-        contract.buyInsurance(flightnumber, web3.toWei(insurancefee, 'ether'), (result) => {
-            alert('you successfully bought an insurance for flight ' + flightnumber + ' being worth ' + insurancefee + ' ether');
-            insuranceFeeTextfield.readOnly = true;
-            button.disabled = true;
+    //if (!insurancefee || insurancefee < 0 || insurancefee > 1) {
+    //    alert('insurance fee must be between 0.0 and 1.0 ETH');
+    //} else {
+        contract.buyInsurance(flightnumber, web3.toWei(insurancefee, 'ether'), (error, result) => {
+            if (error) {
+                console.log(error);
+            } else {
+                alert('you successfully bought an insurance for flight ' + flightnumber + ' being worth ' + insurancefee + ' ether');
+                //insuranceFeeTextfield.readOnly = true;
+                //button.disabled = true;
+            }
         });
-    }
+    //}
 }
 
 function updateStatusHandler() {
