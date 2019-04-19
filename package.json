@@ -8,8 +8,8 @@
   "repository": "https://github.com/Dudy/udacity_blockchain_project7",
   "license": "MIT",
   "scripts": {
-    "gan": "ganache-cli -l 9999999999 -m \"candy maple cake sugar pudding cream honey rich smooth crumble sweet treat\" -a 20",
-    "test": "node truffle test ./test/flightSurety.js",
+    "gan": "ganache-cli -l 9999999999999 -m \"candy maple cake sugar pudding cream honey rich smooth crumble sweet treat\" -a 50",
+    "test": "node truffle test ./test/flightSuretyDataTest.js",
     "dapp": "webpack-dev-server --mode development --config webpack.config.dapp.js",
     "dapp:prod": "webpack --mode production  --config webpack.config.dapp.js",
     "server": "rm -rf ./build/server && webpack --config webpack.config.server.js"
@@ -44,5 +44,7 @@
     "webpack-dev-server": "3.1.14",
     "webpack-node-externals": "1.7.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "babel-polyfill": "6.26.0"
+  }
 }
