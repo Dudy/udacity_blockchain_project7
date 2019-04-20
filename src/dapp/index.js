@@ -13,6 +13,18 @@ let contract;
         }
 
         displayFlightList();
+
+        contract.flightSuretyApp.events.FlightStatusInfo({
+            fromBlock: 0,
+            toBlock: "latest"
+        }, function (error, result) {
+            if (error) {
+                console.log(error)
+            } else {
+                console.log("oracles issued new flight status info");
+                console.log(result.returnValues);
+            }
+        });
     });
 })();
 
@@ -32,6 +44,8 @@ function buyInsuranceHandler() {
                 console.log('error');
                 console.log(error);
             } else {
+                console.log('result');
+                console.log(result);
                 alert('you successfully bought an insurance for flight ' + flightnumber + ' being worth ' + insurancefee + ' ether');
                 insuranceFeeTextfield.readOnly = true;
                 button.disabled = true;
@@ -43,7 +57,10 @@ function buyInsuranceHandler() {
 function updateStatusHandler() {
     let flightnumber = DOM.elid('flightnumber_' + this.getAttribute('data-id')).innerHTML;
     contract.fetchFlightStatus(flightnumber, (error, result) => {
-        console.log(error);
+        if (error) {
+            console.log('error');
+            console.log(error);
+        }
         console.log(result);
         // TODO UI update
     });

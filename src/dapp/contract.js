@@ -6,10 +6,11 @@ import Web3 from 'web3';
 export default class Contract {
     constructor(network, callback) {
 
+        let firstAirline = '0xf17f52151EbEF6C7334FAD080c5704D77216b732';
         let config = Config[network];
-        this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
+        this.web3 = new Web3(new Web3.providers.WebsocketProvider(config.url));
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress, config.dataAddress);
-        this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.dataAddress);
+        this.flightSuretyData = new this.web3.eth.Contract(FlightSuretyData.abi, config.dataAddress, firstAirline);
         this.initialize(callback);
         this.owner = null;
         this.airlines = [];
@@ -63,7 +64,7 @@ export default class Contract {
         self.flightSuretyApp.methods
             .buyInsurance(flightnumber)
             .send({ from: self.owner, value: insurancefee, gas: 5000000}, (error, result) => {
-                callback(result);
+                callback(error, result);
             });
     }
 }
