@@ -23,7 +23,7 @@ async function init() {
     // register 20 oracles
     for (let i = numberOfAccounts - numberOfOracles; i < numberOfAccounts; i++) {
         console.log('registering oracle %d', i + numberOfOracles - numberOfAccounts + 1);
-        await flightSuretyApp.methods.registerOracle().send({ from: accounts[i], value: registrationFee, gas: 10000000 });
+        await flightSuretyApp.methods.registerOracle().send({ from: accounts[i], value: registrationFee, gas: 99999999, gasPrice: 1 });
         let oracle = await flightSuretyApp.methods.getMyIndexes().call({ from: accounts[i] });
         oracle.push(accounts[i]);
 
