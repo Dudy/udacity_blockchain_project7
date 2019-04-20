@@ -36,7 +36,7 @@ async function init() {
         if (error) console.log(error);
         // console.log(event);
     
-        let index = event.returnValues.index;
+        let index = parseInt(event.returnValues.index);
         let airline = event.returnValues.airline;
         let flight = event.returnValues.flight;
         let timestamp = event.returnValues.timestamp;
@@ -53,9 +53,10 @@ async function init() {
         
         // find valid oracles and send their response
         for (let i = 0; i < numberOfOracles; i++) {
-            if (registeredOracles[i][0] == index ||
-                registeredOracles[i][1] == index ||
-                registeredOracles[i][2] == index) {
+
+            if (parseInt(registeredOracles[i][0]) == index ||
+                parseInt(registeredOracles[i][1]) == index ||
+                parseInt(registeredOracles[i][2]) == index) {
                     console.log('found oracle:');
                     console.log(registeredOracles[i]);
                     await flightSuretyApp.methods.submitOracleResponse(index, airline, flight, timestamp, status).send({ from: registeredOracles[i][3] });

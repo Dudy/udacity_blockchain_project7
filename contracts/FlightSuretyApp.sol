@@ -43,32 +43,9 @@ contract FlightSuretyApp {
         emit Log("App: constructor: contractOwner set");
         data = FlightSuretyData(dataContract);
         emit Log("App: constructor: data contract registered");
-        //emit Log(toString(address(data)));
-        emit Log(toAsciiString(address(data)));
     }
 
-
-event Log(string text);
-function toAsciiString(address x) internal returns (string) {
-    bytes memory s = new bytes(40);
-    for (uint i = 0; i < 20; i++) {
-        byte b = byte(uint8(uint(x) / (2**(8*(19 - i)))));
-        byte hi = byte(uint8(b) / 16);
-        byte lo = byte(uint8(b) - 16 * uint8(hi));
-        s[2*i] = char(hi);
-        s[2*i+1] = char(lo);            
-    }
-    return string(s);
-}
-
-function char(byte b) returns (byte c) {
-    if (b < 10) return byte(uint8(b) + 0x30);
-    else return byte(uint8(b) + 0x57);
-}
-
-
-
-
+    event Log(string text);
 
     function isOperational() public view returns(bool) {
         return operational;
@@ -84,7 +61,7 @@ function char(byte b) returns (byte c) {
 
     function buyInsurance(string flightnumber) public payable requireIsOperational {
         emit Log("buyInsurance: method starts");
-        //require(msg.value <= 1 ether, "insurances can only be up to 1 ether");
+        require(msg.value <= 1 ether, "insurances can only be up to 1 ether");
         emit Log("buyInsurance: requirements met");
         
         address(data).transfer(msg.value);
@@ -100,16 +77,14 @@ function char(byte b) returns (byte c) {
     function getNumberOfInsurances() public view returns(uint) {
         return insurances;
     }
-
+    
    /**
     * @dev Called after oracle has updated flight status
     *
     */  
-    function processFlightStatus(address airline, string memory flight, uint256 timestamp, uint8 statusCode) internal {
+    function processFlightStatus(address airline, string flight, uint256 timestamp, uint8 statusCode) internal {
         // gets called when an oracle sends some information (after the next method has triggered such a message from the oracle into the contract)
         // if the oracle comes back with status 20, add some money to the users account so that he can later on withdraw it
-
-        // TODO
 
         if (statusCode == STATUS_CODE_LATE_AIRLINE) {
             // refund all passengers that have an insurance for that flight
@@ -195,18 +170,10 @@ function char(byte b) returns (byte c) {
     // For the response to be accepted, there must be a pending request that is open
     // and matches one of the three Indexes randomly assigned to the oracle at the
     // time of registration (i.e. uninvited oracles are not welcome)
-    function submitOracleResponse
-                        (
-                            uint8 index,
-                            address airline,
-                            string flight,
-                            uint256 timestamp,
-                            uint8 statusCode
-                        )
-                        external
-    {
-        require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
+    function submitOracleResponse(uint8 index, address airline, string flight, uint256 timestamp, uint8 statusCode) external {
+        emit Log("submitOracleResponse was called");
 
+        require((oracles[msg.sender].indexes[0] == index) || (oracles[msg.sender].indexes[1] == index) || (oracles[msg.sender].indexes[2] == index), "Index does not match oracle request");
 
         bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp)); 
         require(oracleResponses[key].isOpen, "Flight or timestamp do not match oracle request");
@@ -267,5 +234,4 @@ contract FlightSuretyData {
     function registerAirline(address newAirline) external;
     function buyInsurance(address passenger, string flightnumber, uint insurancefee) external;
     function creditInsurees(string flightnumber) external payable;
-    function test(string text) external;
 }

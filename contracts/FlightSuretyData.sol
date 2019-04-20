@@ -36,6 +36,9 @@ contract FlightSuretyData {
         uint fee;
     }
     mapping(bytes32 => Insurance) insurances;
+    address[] passengers;
+
+    mapping(address => uint) passengerRefundAccount;
 
     constructor(address firstAirline) public {
         contractOwner = msg.sender;
@@ -135,8 +138,6 @@ contract FlightSuretyData {
         numberOfRegisteredAirlines = numberOfRegisteredAirlines.sub(1);
     }
 
-
-
     event InsuranceBoughtEvent(address passenger, string flightnumber, uint fee);
     function buyInsurance(address passenger, string flightnumber, uint insurancefee) external requireIsOperational requireAuthorizedCaller {
         require(insurancefee <= 1 ether, "insurances can only be up to 1 ether");
@@ -147,36 +148,49 @@ contract FlightSuretyData {
         require(!insurances[insuranceKey].isPaidOut, "this insurance has already been paid out");
 
         insurances[insuranceKey] = Insurance(true, false, insurancefee);
+
+        bool passengerExists = false;
+        uint numberOfPassengers = passengers.length;
+        for (uint i = 0; i < numberOfPassengers; i++) {
+            if (passengers[i] == passenger) {
+                passengerExists = true;
+                break;
+            }
+        }
+        if (!passengerExists) {
+            passengers.push(passenger);
+        }
+
         emit InsuranceBoughtEvent(passenger, flightnumber, insurancefee);
     }
 
-    function test(string text) external {
-        emit Log(text);
-    }
-
-
-
-
-
-    function creditInsurees(address passenger, string flightnumber) external requireIsOperational requireAuthorizedCaller {
-        // there will be an internal account on which user payments will be tracked
-        // there will be no payout here! see next method
-
-        bytes32 insuranceKey = getInsuranceKey(passenger, flightnumber);
-        // TODO: transfer insurances[insuranceKey].fee to passengers account for later withdrawel;
+    function creditInsurees(string flightnumber) external requireIsOperational requireAuthorizedCaller {
+        uint numberOfPassengers = passengers.length;
+        for (uint i = 0; i < numberOfPassengers; i++) {
+            bytes32 insuranceKey = getInsuranceKey(passengers[i], flightnumber);
+            if (!insurances[insuranceKey].isPaidOut) {
+                insurances[insuranceKey].isPaidOut = true;
+                passengerRefundAccount[passengers[i]] = passengerRefundAccount[passengers[i]].add(insurances[insuranceKey].fee.mul(3).div(2));
+            }
+        }
     }
     
-//     function pay() external requireIsOperatioal {
-//         // this method will transfer funds to the user, but noch in a push manner but in a pull manner
-//         // users need to call this to get their funds payed out
-//     }
+    function withdraw() external requireIsOperational {
+        // this method will transfer funds to the user, but not in a push manner but in a pull manner
+        // users need to call this to get their funds payed out
+        uint refundAmount = passengerRefundAccount[msg.sender];
+        passengerRefundAccount[msg.sender] = 0;
+        msg.sender.transfer(refundAmount);
+    }
 
-    function airlineFunding() public payable requireIsOperational requireAuthorizedCaller {
+    function myBalance() external view returns(uint) {
+        return passengerRefundAccount[msg.sender];
+    }
+
+    function airlineFunding() external payable requireIsOperational requireAuthorizedCaller {
         require(msg.value >= JOIN_FEE, "value is too low, price not met");
         require(airlines[msg.sender].isRegistered, "Caller is not a registered airline");
         require(!airlines[msg.sender].hasPaidFund, "Calling airline has already paid their funds");
-
-        //emit Log("unknown method, fallthrough get's to work");
 
         airlines[msg.sender].hasPaidFund = true;
 
@@ -184,16 +198,10 @@ contract FlightSuretyData {
         msg.sender.transfer(amountToReturn);
     }
 
-//     function getFlightKey(address airline, string memory flight, uint256 timestamp) internal returns(bytes32) {
-//         return keccak256(abi.encodePacked(airline, flight, timestamp));
-//     }
-
     function fund() public payable {
     }
 
     function() external payable {
-        //emit Log("Data: unknown");
-        //emit Log("unknown method, fallthrough get's to work");
         fund();
     }
 // endregion
