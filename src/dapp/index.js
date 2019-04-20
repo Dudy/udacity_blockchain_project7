@@ -30,6 +30,7 @@ function buyInsuranceHandler() {
     } else {
         contract.buyInsurance(flightnumber, web3.toWei(insurancefee, 'ether'), (error, result) => {
             if (error) {
+                console.log('error');
                 console.log(error);
             } else {
                 alert('you successfully bought an insurance for flight ' + flightnumber + ' being worth ' + insurancefee + ' ether');
