@@ -1,11 +1,9 @@
 var FlightSuretyApp = artifacts.require("FlightSuretyApp");
 var FlightSuretyData = artifacts.require("FlightSuretyData");
-var BigNumber = require('bignumber.js');
 
 contract('Flight Surety App Tests', async (accounts) => {
     let owner = accounts[0];
     let firstAirline = accounts[1];
-    const JOIN_FEE =  web3.toWei(10,"ether");
     let testAddresses = [
         "0x69e1cb5cfca8a311586e3406ed0301c06fb839a2",
         "0xf014343bdffbed8660a9d8721dec985126f189f3",
@@ -26,12 +24,12 @@ contract('Flight Surety App Tests', async (accounts) => {
 
     it('buy an insurances for too much money', async function() {
         let flightnumber = 'testflight_0';
-        let insurancefee = web3.toWei(1.3, 'ether');
+        let insurancefee = web3.utils.toWei('1.3', 'ether');
 
         try {
             let response = await this.flightSuretyApp.buyInsurance(flightnumber, { from: testAddresses[0], value: insurancefee });
         } catch(e) {
-            assert.equal(e.message, "VM Exception while processing transaction: revert insurances can only be up to 1 ether", "wrong exception occurred");
+            assert.equal(e.reason, "insurances can only be up to 1 ether", "wrong exception occurred");
         }
 
         let numberOfInsurances = await this.flightSuretyApp.getNumberOfInsurances();
@@ -40,7 +38,7 @@ contract('Flight Surety App Tests', async (accounts) => {
 
     it('buy two insurances for the same flight', async function() {
         let flightnumber = 'testflight_0';
-        let insurancefee = web3.toWei(0.3, 'ether');
+        let insurancefee = web3.utils.toWei('0.3', 'ether');
 
         await this.flightSuretyApp.buyInsurance(flightnumber, { from: testAddresses[0], value: insurancefee });
 
@@ -50,7 +48,7 @@ contract('Flight Surety App Tests', async (accounts) => {
         try {
             await this.flightSuretyApp.buyInsurance(flightnumber, { from: testAddresses[0], value: insurancefee });
         } catch(e) {
-            assert.equal(e.message, "VM Exception while processing transaction: revert you can only buy one insurance per flight per passenger", "wrong exception occurred");
+            assert.equal(e.reason, "you can only buy one insurance per flight per passenger", "wrong exception occurred");
         }
 
         numberOfInsurances = await this.flightSuretyApp.getNumberOfInsurances();
@@ -59,7 +57,7 @@ contract('Flight Surety App Tests', async (accounts) => {
 
     it('buy an insurances', async function() {
         let flightnumber = 'testflight_0';
-        let insurancefee = web3.toWei(0.4, 'ether');
+        let insurancefee = web3.utils.toWei('0.4', 'ether');
 
         await this.flightSuretyApp.buyInsurance(flightnumber, { from: testAddresses[0], value: insurancefee });
 

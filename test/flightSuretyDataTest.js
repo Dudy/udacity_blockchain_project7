@@ -5,9 +5,8 @@ var BigNumber = require('bignumber.js');
 contract('Flight Surety Tests', async (accounts) => {
     let owner = accounts[0];
     let firstAirline = accounts[1];
-    const JOIN_FEE =  web3.toWei(10,"ether");
     let testAddresses = [
-        "0x69e1cb5cfca8a311586e3406ed0301c06fb839a2",
+        "0x69e1CB5cFcA8A311586e3406ed0301C06fb839a2",
         "0xf014343bdffbed8660a9d8721dec985126f189f3",
         "0x0e79edbd6a727cfee09a2b1d0a59f7752d5bf7c9",
         "0x9bc1169ca09555bf2721a5c9ec6d69c8073bfeb4",
@@ -83,7 +82,7 @@ contract('Flight Surety Tests', async (accounts) => {
         try {
             await this.flightSuretyData.authorizeCaller(testAddresses[3], { from: testAddresses[4] });
         } catch(e) {
-            assert.equal(e.message, "VM Exception while processing transaction: revert Caller is not contract owner", "wrong exception occurred");
+            assert.equal(e.reason, "Caller is not contract owner", "wrong exception occurred");
             errorFree = false;
         }
         assert.equal(errorFree, false, "Authorization attemp did not threw an expected error");
@@ -118,7 +117,7 @@ contract('Flight Surety Tests', async (accounts) => {
         try {
             await this.flightSuretyData.unauthorizeCaller(testAddresses[2], { from: testAddresses[3] });
         } catch(e) {
-            assert.equal(e.message, "VM Exception while processing transaction: revert Caller is not contract owner", "wrong exception occurred");
+            assert.equal(e.reason, "Caller is not contract owner", "wrong exception occurred");
             errorFree = false;
         }
         assert.equal(errorFree, false, "Unauthorization attemp did not threw an expected error");
@@ -137,7 +136,7 @@ contract('Flight Surety Tests', async (accounts) => {
             await this.flightSuretyData.registerAirline(accounts[2], {from: firstAirline});
         } catch(e) {
             reverted = true;
-            assert.equal(e.message, "VM Exception while processing transaction: revert Contract is currently not operational", "wrong exception occurred");
+            assert.equal(e.reason, "Contract is currently not operational", "wrong exception occurred");
         }
         assert.equal(reverted, true, "Access not blocked for requireIsOperational");
 
@@ -149,7 +148,7 @@ contract('Flight Surety Tests', async (accounts) => {
         try {
             await this.flightSuretyData.registerAirline(accounts[2], {from: firstAirline});
         } catch(e) {
-            assert.equal(e.message, "VM Exception while processing transaction: revert Caller not authorized", "wrong exception occurred");
+            assert.equal(e.reason, "Caller not authorized", "wrong exception occurred");
             reverted = true;
         }
         assert.equal(reverted, true, "Caller is not authorized, but call succeeded");
@@ -163,7 +162,7 @@ contract('Flight Surety Tests', async (accounts) => {
         try {
             await this.flightSuretyData.registerAirline(accounts[3], {from: accounts[2]});
         } catch(e) {
-            assert.equal(e.message, "VM Exception while processing transaction: revert Caller is not a registered airline", "wrong exception occurred");
+            assert.equal(e.reason, "Caller is not a registered airline", "wrong exception occurred");
             registrationSuccessful = false;
         }
         assert.equal(registrationSuccessful, false, "Caller is not registered, but call succeeded");
@@ -177,7 +176,7 @@ contract('Flight Surety Tests', async (accounts) => {
         try {
             await this.flightSuretyData.registerAirline(accounts[2], {from: firstAirline});
         } catch(e) {
-            assert.equal(e.message, "VM Exception while processing transaction: revert Calling airline has not yet paid their funds", "wrong exception occurred");
+            assert.equal(e.reason, "Calling airline has not yet paid their funds", "wrong exception occurred");
             registrationSuccessful = false;
         }
         assert.equal(registrationSuccessful, false, "Caller has not paid funds, but call succeeded");
@@ -188,7 +187,7 @@ contract('Flight Surety Tests', async (accounts) => {
     it('registration of a new airline when there one, two, three, four or five already registered airlines', async function() {
         await this.flightSuretyData.setOperatingStatus(true);
         await this.flightSuretyData.authorizeCaller(firstAirline);
-        await this.flightSuretyData.airlineFunding({ from: firstAirline, value: web3.toWei('10', 'ether') });
+        await this.flightSuretyData.airlineFunding({ from: firstAirline, value: web3.utils.toWei('10', 'ether') });
 
         let numberOfRegisteredAirlines = await this.flightSuretyData.getNumberOfRegisteredAirlines()
         assert.equal(numberOfRegisteredAirlines, 1, "there should be exactly one registered airline (the \"firstAirline\"");
@@ -223,7 +222,7 @@ contract('Flight Surety Tests', async (accounts) => {
         await this.flightSuretyData.authorizeCaller(firstAirline);
 
         // fund first airline (it's already registered)
-        await this.flightSuretyData.airlineFunding({ from: firstAirline, value: web3.toWei('10', 'ether') });
+        await this.flightSuretyData.airlineFunding({ from: firstAirline, value: web3.utils.toWei('10', 'ether') });
         let numberOfRegisteredAirlines = await this.flightSuretyData.getNumberOfRegisteredAirlines()
         assert.equal(numberOfRegisteredAirlines, 1, "there should be exactly one registered airline (the \"firstAirline\"");
 
@@ -234,7 +233,7 @@ contract('Flight Surety Tests', async (accounts) => {
         numberOfRegisteredAirlines = await this.flightSuretyData.getNumberOfRegisteredAirlines()
         assert.equal(numberOfRegisteredAirlines, 2, "there should be exactly two registered airlines");
         await this.flightSuretyData.authorizeCaller(accounts[2]);
-        await this.flightSuretyData.airlineFunding({ from: accounts[2], value: web3.toWei('10', 'ether') });
+        await this.flightSuretyData.airlineFunding({ from: accounts[2], value: web3.utils.toWei('10', 'ether') });
 
         // register third airline
         await this.flightSuretyData.registerAirline(accounts[3], {from: firstAirline});
@@ -267,17 +266,17 @@ contract('Flight Surety Tests', async (accounts) => {
         await this.flightSuretyData.setOperatingStatus(true);
         await this.flightSuretyData.authorizeCaller(firstAirline);
 
-        const firstAirlineBalanceBefore = await web3.eth.getBalance(firstAirline);
-        const dataBalanceBefore = await web3.eth.getBalance(this.flightSuretyData.address);
+        const firstAirlineBalanceBefore = new BigNumber(await web3.eth.getBalance(firstAirline));
+        const dataBalanceBefore = new BigNumber(await web3.eth.getBalance(this.flightSuretyData.address));
 
-        await this.flightSuretyData.airlineFunding({ from: firstAirline, value: web3.toWei('12', 'ether') });
+        await this.flightSuretyData.airlineFunding({ from: firstAirline, value: web3.utils.toWei('12', 'ether') });
 
-        const firstAirlineBalanceAfter = await web3.eth.getBalance(firstAirline);
-        const dataBalanceAfter = await web3.eth.getBalance(this.flightSuretyData.address);
-        const blockchainCost = 1152576;
+        const firstAirlineBalanceAfter = new BigNumber(await web3.eth.getBalance(firstAirline));
+        const dataBalanceAfter = new BigNumber(await web3.eth.getBalance(this.flightSuretyData.address));
+        const blockchainCost = 720800000000000;
 
-        assert.equal(dataBalanceBefore.add(web3.toWei('10', 'ether')).eq(dataBalanceAfter), true, 'data contract has not received the correct amount of money');
-        assert.equal(firstAirlineBalanceAfter.add(web3.toWei('10', 'ether')).add(blockchainCost).eq(firstAirlineBalanceBefore), true, 'firstAirline has not paid the correct amount of money');
+        assert.equal(dataBalanceBefore.plus(web3.utils.toWei('10', 'ether')).eq(dataBalanceAfter), true, 'data contract has not received the correct amount of money');
+        assert.equal(firstAirlineBalanceAfter.plus(web3.utils.toWei('10', 'ether')).plus(blockchainCost).eq(firstAirlineBalanceBefore), true, 'firstAirline has not paid the correct amount of money');
         
         await this.flightSuretyData.unauthorizeCaller(firstAirline);
     });
@@ -285,10 +284,10 @@ contract('Flight Surety Tests', async (accounts) => {
     it('call buyInsurance', async function() {
         await this.flightSuretyData.setOperatingStatus(true);
         await this.flightSuretyData.authorizeCaller(firstAirline);
-        await this.flightSuretyData.airlineFunding({ from: firstAirline, value: web3.toWei('12', 'ether') });
+        await this.flightSuretyData.airlineFunding({ from: firstAirline, value: web3.utils.toWei('12', 'ether') });
 
         let flightnumber = 'testflight_0';
-        let insurancefee = web3.toWei(0.3, 'ether');
+        let insurancefee = web3.utils.toWei('0.3', 'ether');
         let result = await this.flightSuretyData.buyInsurance(testAddresses[0], flightnumber, insurancefee, { from: firstAirline });
 
         assert.equal(result.logs[0].event, 'InsuranceBoughtEvent', 'no InsuranceBoughtEvent event was sent');
@@ -314,10 +313,10 @@ contract('Flight Surety Tests', async (accounts) => {
         let flightA = 'testflight_A';
         let flightB = 'testflight_B';
 
-        let insurancefee1 = web3.toWei(0.1, 'ether');
-        let insurancefee2 = web3.toWei(0.2, 'ether');
-        let insurancefee3 = web3.toWei(0.4, 'ether');
-        let insurancefee4 = web3.toWei(0.8, 'ether');
+        let insurancefee1 = web3.utils.toWei('0.1', 'ether');
+        let insurancefee2 = web3.utils.toWei('0.2', 'ether');
+        let insurancefee3 = web3.utils.toWei('0.4', 'ether');
+        let insurancefee4 = web3.utils.toWei('0.8', 'ether');
 
         await this.flightSuretyData.buyInsurance(passenger1, flightA, insurancefee1);
         await this.flightSuretyData.buyInsurance(passenger2, flightA, insurancefee2);
@@ -331,10 +330,10 @@ contract('Flight Surety Tests', async (accounts) => {
         let balance3After = await this.flightSuretyData.myBalance({ from: passenger3 });
         let balance4After = await this.flightSuretyData.myBalance({ from: passenger4 });
         
-        let expectedBalance1 = web3.toWei(0.15, 'ether');
-        let expectedBalance2 = web3.toWei(0.3, 'ether');
-        let expectedBalance3 = web3.toWei(0, 'ether');
-        let expectedBalance4 = web3.toWei(0, 'ether');
+        let expectedBalance1 = web3.utils.toWei('0.15', 'ether');
+        let expectedBalance2 = web3.utils.toWei('0.3', 'ether');
+        let expectedBalance3 = web3.utils.toWei('0', 'ether');
+        let expectedBalance4 = web3.utils.toWei('0', 'ether');
 
         assert.equal(balance1After, expectedBalance1, 'passenger 1 balance not correct');
         assert.equal(balance2After, expectedBalance2, 'passenger 2 balance not correct');
@@ -348,7 +347,6 @@ contract('Flight Surety Tests', async (accounts) => {
         // call 'creditInsurees'
         // withdraw money
 
-
         await this.flightSuretyData.setOperatingStatus(true);
         await this.flightSuretyData.authorizeCaller(owner);
 
@@ -360,10 +358,10 @@ contract('Flight Surety Tests', async (accounts) => {
         let flightA = 'testflight_A';
         let flightB = 'testflight_B';
 
-        let insurancefee1 = web3.toWei(0.1, 'ether');
-        let insurancefee2 = web3.toWei(0.2, 'ether');
-        let insurancefee3 = web3.toWei(0.4, 'ether');
-        let insurancefee4 = web3.toWei(0.8, 'ether');
+        let insurancefee1 = web3.utils.toWei('0.1', 'ether');
+        let insurancefee2 = web3.utils.toWei('0.2', 'ether');
+        let insurancefee3 = web3.utils.toWei('0.4', 'ether');
+        let insurancefee4 = web3.utils.toWei('0.8', 'ether');
 
         await this.flightSuretyData.buyInsurance(passenger1, flightA, insurancefee1);
         await this.flightSuretyData.buyInsurance(passenger2, flightA, insurancefee2);
@@ -377,10 +375,10 @@ contract('Flight Surety Tests', async (accounts) => {
         let balance3After = await this.flightSuretyData.myBalance({ from: passenger3 });
         let balance4After = await this.flightSuretyData.myBalance({ from: passenger4 });
         
-        let expectedBalance1 = web3.toWei(0.15, 'ether');
-        let expectedBalance2 = web3.toWei(0.3, 'ether');
-        let expectedBalance3 = web3.toWei(0, 'ether');
-        let expectedBalance4 = web3.toWei(0, 'ether');
+        let expectedBalance1 = web3.utils.toWei('0.15', 'ether');
+        let expectedBalance2 = web3.utils.toWei('0.3', 'ether');
+        let expectedBalance3 = web3.utils.toWei('0', 'ether');
+        let expectedBalance4 = web3.utils.toWei('0', 'ether');
 
         assert.equal(balance1After, expectedBalance1, 'passenger 1 balance not correct');
         assert.equal(balance2After, expectedBalance2, 'passenger 2 balance not correct');
