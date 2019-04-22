@@ -92,7 +92,7 @@ contract('Flight Surety Tests', async (accounts) => {
         let insurancefee3 = web3.utils.toWei('0.4', 'ether');
         let insurancefee4 = web3.utils.toWei('0.8', 'ether');
 
-        let buyInsuranceBlockchainCost = new BigNumber('3037640000000000');
+        let buyInsuranceBlockchainCost = new BigNumber('151882');
         let blockchainBalanceBeforePassenger1 = new BigNumber(await web3.eth.getBalance(passenger1));
 
         await this.flightSuretyApp.buyInsurance(flightA, { from: passenger1, value: insurancefee1 });
@@ -118,14 +118,14 @@ contract('Flight Surety Tests', async (accounts) => {
         assert.equal(balance3After, expectedBalance3, 'passenger 3 balance not correct');
         assert.equal(balance4After, expectedBalance4, 'passenger 4 balance not correct');
 
-        let blockchainBalanceAfterPassenger1BeforeWithdrawal = new BigNumber(await web3.eth.getBalance(passenger1)); // 100 ETH - blockchainCost gas (4860928 wei) - insurance (0.1 ETH) + refund (0.15 ETH) => 
+        let blockchainBalanceAfterPassenger1BeforeWithdrawal = new BigNumber(await web3.eth.getBalance(passenger1));
 
         assert.equal(blockchainBalanceBeforePassenger1.eq(blockchainBalanceAfterPassenger1BeforeWithdrawal.plus(buyInsuranceBlockchainCost).plus(insurancefee1)), true, 'passenger 1 blockchain balance not correct before withdrawal');
 
         await this.flightSuretyData.withdraw({ from: passenger1 });
 
-        let withdrawBlockchainCost = new BigNumber('395080000000000');
-        let blockchainBalanceAfterPassenger1 = new BigNumber(await web3.eth.getBalance(passenger1)); // 100 ETH - blockchainCost gas (4860928 wei) - insurance (0.1 ETH) + refund (0.15 ETH) => 
+        let withdrawBlockchainCost = new BigNumber('19754');
+        let blockchainBalanceAfterPassenger1 = new BigNumber(await web3.eth.getBalance(passenger1));
 
         assert.equal(blockchainBalanceBeforePassenger1.plus(web3.utils.toWei('0.05', 'ether')).eq(blockchainBalanceAfterPassenger1.plus(buyInsuranceBlockchainCost).plus(withdrawBlockchainCost)), true, 'passenger 1 blockchain balance not correct after withdrawal');
     });

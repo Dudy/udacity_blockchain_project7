@@ -273,7 +273,7 @@ contract('Flight Surety Tests', async (accounts) => {
 
         const firstAirlineBalanceAfter = new BigNumber(await web3.eth.getBalance(firstAirline));
         const dataBalanceAfter = new BigNumber(await web3.eth.getBalance(this.flightSuretyData.address));
-        const blockchainCost = 720800000000000;
+        const blockchainCost = new BigNumber('36040');
 
         assert.equal(dataBalanceBefore.plus(web3.utils.toWei('10', 'ether')).eq(dataBalanceAfter), true, 'data contract has not received the correct amount of money');
         assert.equal(firstAirlineBalanceAfter.plus(web3.utils.toWei('10', 'ether')).plus(blockchainCost).eq(firstAirlineBalanceBefore), true, 'firstAirline has not paid the correct amount of money');

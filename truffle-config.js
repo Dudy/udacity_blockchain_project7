@@ -2,24 +2,12 @@ var mnemonic = "candy maple cake sugar pudding cream honey rich smooth crumble s
 
 module.exports = {
   networks: {
-    // development: {
-    //   host: "127.0.0.1",
-    //   port: 8545,
-    //   network_id: '*'
-    // }
-    // development: {
-    //   host: "127.0.0.1",
-    //   port: 8545,
-    //   network_id: '*',
-    //   gas: 5000000,
-    //   gasPrice: 32,
-    // }
     development: {
         host: "127.0.0.1",
         port: 8545,
         network_id: '*',
-        //gas: 4700000,
-        //gasPrice: 32,
+        gas: 9999999999999,
+        gasPrice: 1,
         accounts: 50,
         defaultEtherBalance: 1000,
         mnemonic: mnemonic,

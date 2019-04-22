@@ -13,10 +13,13 @@ To install, download or clone the repo, then:
 
 ## Develop Client
 
+To run ganache-cli:
+
+`npm run myganache`
+
 To run truffle tests:
 
-`truffle test ./test/flightSurety.js`
-`truffle test ./test/oracles.js`
+`truffle test`
 
 To use the dapp:
 
@@ -30,7 +33,6 @@ To view dapp:
 ## Develop Server
 
 `npm run server`
-`truffle test ./test/oracles.js`
 
 ## Deploy
 
@@ -57,8 +59,6 @@ Deploy the contents of the ./dapp folder
 
 The system is build of two contracts on the blockchain (a data contract and an application contract), a server-side backend
 application (on oracle) and a client-side frontend (dapp).
-
-
 
 # Requirements
 
@@ -128,5 +128,3 @@ application (on oracle) and a client-side frontend (dapp).
 - multiparty consensus for state changing, just like when registering airlines
     - maybe there is some code reusability possibility here
 - fail fast - use require at the beginning og the functions
-
-
