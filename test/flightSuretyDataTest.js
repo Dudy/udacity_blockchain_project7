@@ -2,7 +2,7 @@ var FlightSuretyApp = artifacts.require("FlightSuretyApp");
 var FlightSuretyData = artifacts.require("FlightSuretyData");
 var BigNumber = require('bignumber.js');
 
-contract('Flight Surety Tests', async (accounts) => {
+contract('Flight Surety Data Tests', async (accounts) => {
     let owner = accounts[0];
     let firstAirline = accounts[1];
     let testAddresses = [

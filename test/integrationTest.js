@@ -45,21 +45,15 @@ async function initOracles(accounts, flightSuretyApp) {
     });
 }
 
-contract('Flight Surety Tests', async (accounts) => {
+contract('Integration Tests', async (accounts) => {
     web3.eth.defaultAccount = accounts[0];
     let owner = accounts[0];
     let firstAirline = accounts[1];
-    let testAddresses = [
-        "0x69e1cb5cfca8a311586e3406ed0301c06fb839a2",
-        "0xf014343bdffbed8660a9d8721dec985126f189f3",
-        "0x0e79edbd6a727cfee09a2b1d0a59f7752d5bf7c9",
-        "0x9bc1169ca09555bf2721a5c9ec6d69c8073bfeb4",
-        "0xa23eaef02f9e0338eecda8fdd0a73add781b2a86",
-        "0x6b85cc8f612d5457d49775439335f83e12b8cfde",
-        "0xcbd22ff1ded1423fbc24a7af2148745878800024",
-        "0xc257274276a4e539741ca11b590b9447b26a8051",
-        "0x2f2899d6d35b1a48a4fbdc93a37a72f264a9fca7"
-    ];
+
+    let passenger1 = accounts[2];
+    let passenger2 = accounts[3];
+    let passenger3 = accounts[4];
+    let passenger4 = accounts[5];
 
     beforeEach(async function() {
         this.flightSuretyData = await FlightSuretyData.new(firstAirline, { from: owner });
@@ -70,7 +64,6 @@ contract('Flight Surety Tests', async (accounts) => {
 
     it('creditInsurees', async function() {
         // register oracles
-        // create four passengers (1, 2, 3, 4)
         // buy insurance for flight A for 1 and 2
         // buy insurance for flight B for 2 and 3
         // fetchFlightStatus such that oracles respond
@@ -78,11 +71,6 @@ contract('Flight Surety Tests', async (accounts) => {
 
         await this.flightSuretyData.setOperatingStatus(true);
         await this.flightSuretyData.authorizeCaller(owner);
-
-        let passenger1 = testAddresses[1];
-        let passenger2 = testAddresses[2];
-        let passenger3 = testAddresses[3];
-        let passenger4 = testAddresses[4];
 
         let flightA = 'testflight_A';
         let flightB = 'testflight_B';
